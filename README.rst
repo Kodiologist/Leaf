@@ -1,5 +1,7 @@
 This repository houses the task code for Leaf, a study of nonstrategic aspects of the prisoner's dilemma.
 
+`SchizoidPy`_ is required.
+
 License
 ============================================================
 
@@ -9,4 +11,5 @@ This program is free software: you can redistribute it and/or modify it under th
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the `GNU General Public License`_ for more details.
 
+.. _SchizoidPy: https://github.com/Kodiologist/SchizoidPy
 .. _`GNU General Public License`: http://www.gnu.org/licenses/
