@@ -58,6 +58,15 @@ payoffs = {
    (DEFECT, DEFECT): 2,
    (COOPERATE, DEFECT): 1}
 
+# Running totals
+def score_counters(player_score, opponent_score):
+    s = ('You:  %4d' % player_score +
+         '\nThem: %4d' % opponent_score)
+    return TextStim(o.win, s, color = 'black',
+        font = 'monospace',
+        pos = (-.5, .7),
+        height = .1)
+
 # Opponent choice boxes
 def f():
     hmargin = .05
@@ -149,14 +158,19 @@ def f():
     return stims, player_marker_f, opponent_marker_f, grayout_f
 pmatrix, pmatrix_player_marker, pmatrix_opponent_marker, pmatrix_shade = f()
 
+player_score = 0
+opponent_score = 0
+
 def do_trial(trial):
+    global player_score, opponent_score
     dkey = ('cooperated', trial)
-    opponent_side = UP if choices_by_side[UP] is opponent_choices[trial] else DOWN
+    opponent_choice = opponent_choices[trial]
+    opponent_side = UP if choices_by_side[UP] is opponent_choice else DOWN
     stims = (opponent_choice_boxes + pmatrix + [
          pmatrix_shade(opponent_side.flip),
          pmatrix_opponent_marker(opponent_side),
          opponent_choice_marker(trial)])
-    o.draw(*stims)
+    o.draw(*(stims + [score_counters(player_score, opponent_score)]))
     with o.timestamps(dkey):
         while True:
             pressed = getKeys(['escape', 'left', 'right'])
@@ -167,9 +181,12 @@ def do_trial(trial):
             clearEvents()
             sleep(.1)
     chosen_side = LEFT if pressed[0] == 'left' else RIGHT
-    o.save(dkey,
-        choices_by_side[chosen_side] is COOPERATE)
+    player_choice = choices_by_side[chosen_side]
+    o.save(dkey, player_choice is COOPERATE)
+    player_score += payoffs[player_choice, opponent_choice]
+    opponent_score += payoffs[opponent_choice, player_choice]
     o.wait_screen(.5, *(stims + [
+        score_counters(player_score, opponent_score),
         pmatrix_player_marker(chosen_side, opponent_side)]))
 
 # ------------------------------------------------------------
