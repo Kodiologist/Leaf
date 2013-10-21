@@ -46,6 +46,7 @@ Boolish('VDir', 'DOWN', 'UP')
 opponent_choices = map(Choice.from_bool, opponent_cooperates)
 
 choice_colors = {COOPERATE: 'green', DEFECT: 'blue'}
+opponent_choice_color = 'yellow'
 choices_by_side = {
     LEFT: COOPERATE, RIGHT: DEFECT,
     UP: COOPERATE, DOWN: DEFECT}
@@ -76,7 +77,7 @@ def f():
             pos = pos(i))
         for i, c in enumerate(opponent_choices)]
     marker_f = lambda i: Circle(o.win,
-        lineColor = 'black', fillColor = 'yellow',
+        lineColor = 'black', fillColor = opponent_choice_color,
         radius = min(width, height)/4,
         pos = pos(i))
     return boxes, marker_f
@@ -131,24 +132,29 @@ def f():
         card(UP, -length/2 - cwidth/2 - .05, length/4),
         card(DOWN, -length/2 - cwidth/2 - .05, -length/4),
         o.text(x_offset - length/2 - .2, -.2, 'They\nplay')])
-    marker_f = lambda hside, vside: Rect(o.win,
+    player_marker_f = lambda hside, vside: Rect(o.win,
         fillColor = 'yellow', lineColor = None, opacity = .3,
         width = length/2, height = length/2,
         pos =
            (hside.sign * length/4 + x_offset,
             vside.sign * length/4 + y_offset))
+    opponent_marker_f = lambda vside: Circle(o.win,
+        lineColor = 'black', fillColor = opponent_choice_color,
+        radius = min(cwidth, cheight)/4,
+        pos = (x_offset - length/2 - cwidth/2 - .05, y_offset + vside.sign * length/4))
     grayout_f = lambda vside: Rect(o.win,
         fillColor = 'white', lineColor = None, opacity = .7,
         width = length, height = length/2,
         pos = (x_offset, vside.sign * length/4 + y_offset))
-    return stims, marker_f, grayout_f
-pmatrix, pmatrix_marker, pmatrix_shade = f()
+    return stims, player_marker_f, opponent_marker_f, grayout_f
+pmatrix, pmatrix_player_marker, pmatrix_opponent_marker, pmatrix_shade = f()
 
 def do_trial(trial):
     dkey = ('cooperated', trial)
     opponent_side = UP if choices_by_side[UP] is opponent_choices[trial] else DOWN
     stims = (opponent_choice_boxes + pmatrix + [
          pmatrix_shade(opponent_side.flip),
+         pmatrix_opponent_marker(opponent_side),
          opponent_choice_marker(trial)])
     o.draw(*stims)
     with o.timestamps(dkey):
@@ -164,7 +170,7 @@ def do_trial(trial):
     o.save(dkey,
         choices_by_side[chosen_side] is COOPERATE)
     o.wait_screen(.5, *(stims + [
-        pmatrix_marker(chosen_side, opponent_side)]))
+        pmatrix_player_marker(chosen_side, opponent_side)]))
 
 # ------------------------------------------------------------
 # * Preliminaries
