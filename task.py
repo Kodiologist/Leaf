@@ -26,7 +26,6 @@ opponent_cooperates = [
 def Boolish(class_name, v1_name, v2_name):
     'Create a Boolean-like class.'
     cls = type(class_name, (object,), dict())
-    g = globals()
     v1 = cls()
     v2 = cls()
     cls.from_bool = classmethod(lambda self, x: v2 if x else v1)
@@ -137,7 +136,7 @@ def f():
            (hside.sign * length/4,
             vside.sign * length/4 + y_offset))
     grayout_f = lambda vside: Rect(o.win,
-        fillColor = 'black', lineColor = None, opacity = .3,
+        fillColor = 'white', lineColor = None, opacity = .7,
         width = length, height = length/2,
         pos = (0, vside.sign * length/4 + y_offset))
     return stims, marker_f, grayout_f
