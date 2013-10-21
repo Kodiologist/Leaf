@@ -54,8 +54,8 @@ choices_by_side = {
 
 # Running totals
 def score_counters(player_score, opponent_score):
-    s = ('You: %4d' % player_score +
-         '\nOP:  %4d' % opponent_score)
+    s = (  'You:           %4d' % player_score +
+         '\nOther player:  %4d' % opponent_score)
     return TextStim(o.win, s, color = 'black',
         font = 'monospace',
         pos = (-.5, .7),
@@ -140,10 +140,10 @@ def pmatrix(opponent_side, payoffs):
         gridsquare(LEFT, DOWN) + [
         card(LEFT, -length/4, length/2 + cheight/2 + .05),
         card(RIGHT, length/4, length/2 + cheight/2 + .05),
-        o.text(x_offset, length/2 + y_offset + .3, 'You play'),
+        o.text(x_offset, length/2 + y_offset + .3, 'You'),
         card(UP, -length/2 - cwidth/2 - .05, length/4),
         card(DOWN, -length/2 - cwidth/2 - .05, -length/4),
-            o.text(x_offset - length/2 - .2, -.2, 'They\nplay'),
+            o.text(x_offset - length/2 - .2, -.2, 'Other\nplayer'),
         grayout,
         opponent_marker])
     player_marker_f = lambda hside, vside: Rect(o.win,
