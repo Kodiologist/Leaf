@@ -59,15 +59,16 @@ payoffs = {
 
 # Opponent choice boxes
 def f():
-    margin = .1
+    hmargin = .05
+    vmargin = .7
     hspacer = .03
     vspacer = .03
-    row_len = 20
-    width = (2 - 2*margin - (row_len - 1) * hspacer)/row_len
+    row_len = 4
+    width = .05  # (2 - 2*margin - (row_len - 1) * hspacer)/row_len
     height = .05
     pos = lambda i: (
-        +width/2 + -1 + margin + (i % row_len)*(width + hspacer),
-        -height/2 + 1 - margin - int(i / row_len)*(height + vspacer))
+        +width/2 + -1 + hmargin + (i % row_len)*(width + hspacer),
+        -height/2 + 1 - vmargin - int(i / row_len)*(height + vspacer))
     boxes = [
         Rect(o.win,
             fillColor = choice_colors[c], lineColor = 'black',
@@ -83,6 +84,7 @@ opponent_choice_boxes, opponent_choice_marker = f()
 
 # Payoff matrix
 def f():
+    x_offset = .3
     y_offset = -.2
     length = 1.
     linewidth = 3
@@ -90,7 +92,7 @@ def f():
     cwidth = length/5
     cheight = cwidth/2
     def gridsquare(hside, vside):
-        x = hside.sign * length/4
+        x = hside.sign * length/4 + x_offset
         y = vside.sign * length/4 + y_offset
         player_points = payoffs[
             choices_by_side[hside],
@@ -117,7 +119,7 @@ def f():
     card = lambda side, x, y: Rect(o.win,
         fillColor = choice_colors[choices_by_side[side]],
         lineColor = 'black',
-        width = cwidth, height = cheight, pos = (x, y + y_offset))
+        width = cwidth, height = cheight, pos = (x + x_offset, y + y_offset))
     stims = (
         gridsquare(LEFT, UP) + 
         gridsquare(RIGHT, UP) +
@@ -125,20 +127,20 @@ def f():
         gridsquare(LEFT, DOWN) + [
         card(LEFT, -length/4, length/2 + cheight/2 + .05),
         card(RIGHT, length/4, length/2 + cheight/2 + .05),
-        o.text(0, length/2 + y_offset + .3, 'You play'),
+        o.text(x_offset, length/2 + y_offset + .3, 'You play'),
         card(UP, -length/2 - cwidth/2 - .05, length/4),
         card(DOWN, -length/2 - cwidth/2 - .05, -length/4),
-        o.text(-length/2 - .2, -.2, 'They\nplay')])
+        o.text(x_offset - length/2 - .2, -.2, 'They\nplay')])
     marker_f = lambda hside, vside: Rect(o.win,
         fillColor = 'yellow', lineColor = None, opacity = .3,
         width = length/2, height = length/2,
         pos =
-           (hside.sign * length/4,
+           (hside.sign * length/4 + x_offset,
             vside.sign * length/4 + y_offset))
     grayout_f = lambda vside: Rect(o.win,
         fillColor = 'white', lineColor = None, opacity = .7,
         width = length, height = length/2,
-        pos = (0, vside.sign * length/4 + y_offset))
+        pos = (x_offset, vside.sign * length/4 + y_offset))
     return stims, marker_f, grayout_f
 pmatrix, pmatrix_marker, pmatrix_shade = f()
 
