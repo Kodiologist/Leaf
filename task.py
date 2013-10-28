@@ -54,8 +54,12 @@ choices_by_side = {
 
 # Running totals
 def score_counters(player_score, opponent_score):
-    s = (  'You:           %4d' % player_score +
-         '\nOther player:  %4d' % opponent_score)
+    global show_opponent_score
+    if show_opponent_score:
+        s = ('You:           %4d' % player_score +
+             '\nOther player:  %4d' % opponent_score)
+    else:
+        s = 'Your score:  %4d' % player_score
     return TextStim(o.win, s, color = 'black',
         font = 'monospace',
         pos = (-.5, .7),
@@ -96,6 +100,7 @@ def pmatrix(opponent_side, payoffs):
     cwidth = length/5
     cheight = cwidth/2
     def gridsquare(hside, vside):
+        global show_opponent_score
         x = hside.sign * length/4 + x_offset
         y = vside.sign * length/4 + y_offset
         player_points = payoffs[
@@ -103,7 +108,7 @@ def pmatrix(opponent_side, payoffs):
             choices_by_side[vside]]
         opponent_points = payoffs[
             choices_by_side[vside],
-            choices_by_side[hside]]
+            choices_by_side[hside]] if show_opponent_score else ''
         gridline = lambda x1, y1, x2, y2: Line(o.win,
             lineColor = 'black', lineWidth = linewidth,
             start = (x + x1 * length/4, y + y1 * length/4),
@@ -165,9 +170,9 @@ def wait_for_keypress(dkey, keys):
             clearEvents()
             sleep(.1)
 
-def do_trial(condition, trial, payoffs):
+def do_trial(payoff_condition, trial, payoffs):
     global player_score, opponent_score
-    dkey = ('condition', condition, 'cooperated', trial)
+    dkey = ('payoff_condition', payoff_condition, 'cooperated', trial)
     opponent_choice = opponent_choices[trial]
     opponent_side = UP if choices_by_side[UP] is opponent_choice else DOWN
     pm, pm_player_marker = pmatrix(opponent_side, payoffs)
@@ -194,10 +199,13 @@ if par['debug']:
 else:
     o.get_subject_id('Decision-Making')
 
-conditions = ['1-2-3-4', '1-2-9-10']
+show_opponent_score = bool(randint(0, 1))
+o.save('show_opponent_score', show_opponent_score)
+
+payoff_conditions = ['1-2-3-4', '1-2-9-10']
 if randint(0, 1):
-    conditions = conditions[::-1]
-o.save('condition_order', conditions)
+    payoff_conditions = payoff_conditions[::-1]
+o.save('payoff_condition_order', payoff_conditions)
 
 o.start_clock()
 
@@ -205,8 +213,8 @@ o.start_clock()
 # * The main task
 # ------------------------------------------------------------
 
-for condition in conditions:
-    amounts = [int(s) for s in condition.split('-')]
+for payoff_condition in payoff_conditions:
+    amounts = [int(s) for s in payoff_condition.split('-')]
     payoffs = {
       # The first element of each pair is the player whose payoffs
       # we're asking about.
@@ -217,11 +225,12 @@ for condition in conditions:
     player_score = 0
     opponent_score = 0
     for trial in range(len(opponent_choices)):
-        do_trial(condition, trial, payoffs)
+        do_trial(payoff_condition, trial, payoffs)
     o.draw(score_counters(player_score, opponent_score),
        o.text(0, 0,
           'Round complete.\n\nPress the spacebar to continue.'))
-    wait_for_keypress(('condition', condition, 'completion_screen'), ['space'])
+    wait_for_keypress(('payoff_condition', payoff_condition, 'completion_screen'),
+        ['space'])
 
 # ------------------------------------------------------------
 # * Done
