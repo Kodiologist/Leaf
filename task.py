@@ -3,10 +3,11 @@
 
 from sys import argv
 from time import sleep
-from random import randint
+from random import randint, sample
 from psychopy.event import getKeys, clearEvents
 from psychopy.visual import Rect, Line, TextStim, Circle
 import schizoidpy
+from schizoidpy import StimGroup
 
 par = dict(zip(argv[1::2], argv[2::2])) # DEPLOYMENT SCRIPT EDITS THIS LINE
 
@@ -15,14 +16,14 @@ o = schizoidpy.Task(
     okay_button_pos = (0, -.7))
 o.save('task', par['task'])
 
-opponent_cooperates = [
-    0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1,
-    0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1]
-  # A shuffle of twenty 0s and 1s.
+trials_per_option_per_block = 20
 
 # ------------------------------------------------------------
 # * Declarations
 # ------------------------------------------------------------
+
+def shuffled(l):
+    return sample(l, len(l))
 
 def Boolish(class_name, v1_name, v2_name):
     'Create a Boolean-like class.'
@@ -44,8 +45,6 @@ Boolish('Choice', 'DEFECT', 'COOPERATE')
 Boolish('HDir', 'LEFT', 'RIGHT')
 Boolish('VDir', 'DOWN', 'UP')
 
-opponent_choices = map(Choice.from_bool, opponent_cooperates)
-
 choice_colors = {COOPERATE: 'green', DEFECT: 'blue'}
 opponent_choice_color = 'yellow'
 choices_by_side = {
@@ -66,7 +65,7 @@ def score_counters(player_score, opponent_score):
         height = .1)
 
 # Opponent choice boxes
-def f():
+def opponent_choice_boxes(opponent_choices, trial):
     hmargin = .05
     vmargin = .7
     hspacer = .03
@@ -83,12 +82,11 @@ def f():
             width = width, height = height,
             pos = pos(i))
         for i, c in enumerate(opponent_choices)]
-    marker_f = lambda i: Circle(o.win,
+    marker = Circle(o.win,
         lineColor = 'black', fillColor = opponent_choice_color,
         radius = min(width, height)/4,
-        pos = pos(i))
-    return boxes, marker_f
-opponent_choice_boxes, opponent_choice_marker = f()
+        pos = pos(trial))
+    return StimGroup(boxes + [marker])
 
 # Payoff matrix
 def pmatrix(opponent_side, payoffs):
@@ -157,7 +155,7 @@ def pmatrix(opponent_side, payoffs):
         pos =
            (hside.sign * length/4 + x_offset,
             vside.sign * length/4 + y_offset))
-    return stims, player_marker_f
+    return StimGroup(stims), player_marker_f
 
 def wait_for_keypress(dkey, keys):
     with o.timestamps(dkey):
@@ -170,15 +168,14 @@ def wait_for_keypress(dkey, keys):
             clearEvents()
             sleep(.1)
 
-def do_trial(payoff_condition, trial, payoffs):
+def do_trial(payoff_condition, opponent_choices, trial, payoffs):
     global player_score, opponent_score
     dkey = ('payoff_condition', payoff_condition, 'cooperated', trial)
     opponent_choice = opponent_choices[trial]
     opponent_side = UP if choices_by_side[UP] is opponent_choice else DOWN
+    oc_boxes = opponent_choice_boxes(opponent_choices, trial)
     pm, pm_player_marker = pmatrix(opponent_side, payoffs)
-    stims = (opponent_choice_boxes + pm +
-        [opponent_choice_marker(trial)])
-    o.draw(*(stims + [score_counters(player_score, opponent_score)]))
+    o.draw(oc_boxes, pm, score_counters(player_score, opponent_score))
     pressed = wait_for_keypress(dkey, ['left', 'right'])
 
     chosen_side = LEFT if pressed == 'left' else RIGHT
@@ -186,9 +183,10 @@ def do_trial(payoff_condition, trial, payoffs):
     o.save(dkey, player_choice is COOPERATE)
     player_score += payoffs[player_choice, opponent_choice]
     opponent_score += payoffs[opponent_choice, player_choice]
-    o.wait_screen(.5, *(stims + [
+    o.wait_screen(.5,
+        oc_boxes, pm,
         score_counters(player_score, opponent_score),
-        pm_player_marker(chosen_side, opponent_side)]))
+        pm_player_marker(chosen_side, opponent_side))
 
 # ------------------------------------------------------------
 # * Preliminaries
@@ -222,10 +220,15 @@ for payoff_condition in payoff_conditions:
         (DEFECT, DEFECT): amounts[1],
         (COOPERATE, COOPERATE): amounts[2],
         (DEFECT, COOPERATE): amounts[3]}
+    opponent_cooperates = shuffled([c for c in (False, True)
+        for n in range(trials_per_option_per_block)])
+    o.save(('payoff_condition', payoff_condition, 'opponent_cooperates'),
+        opponent_cooperates)
+    opponent_choices = map(Choice.from_bool, opponent_cooperates)
     player_score = 0
     opponent_score = 0
     for trial in range(len(opponent_choices)):
-        do_trial(payoff_condition, trial, payoffs)
+        do_trial(payoff_condition, opponent_choices, trial, payoffs)
     o.draw(score_counters(player_score, opponent_score),
        o.text(0, 0,
           'Round complete.\n\nPress the spacebar to continue.'))
