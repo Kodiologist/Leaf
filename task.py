@@ -60,7 +60,7 @@ def score_counters(player_score, opponent_score):
     else:
         s = 'Your score:  %4d' % player_score
     return TextStim(o.win, s, color = 'black',
-        font = 'monospace',
+        font = 'Consolas',
         pos = (-.5, .7),
         height = .1)
 
