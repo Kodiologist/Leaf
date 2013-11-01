@@ -146,7 +146,7 @@ def pmatrix(opponent_side, payoffs):
         o.text(x_offset, length/2 + y_offset + .3, 'You'),
         card(UP, -length/2 - cwidth/2 - .05, length/4),
         card(DOWN, -length/2 - cwidth/2 - .05, -length/4),
-            o.text(x_offset - length/2 - .2, -.2, 'Other\nplayer'),
+        o.text(x_offset - length/2 - .2, -.2, 'Other\nplayer'),
         grayout,
         opponent_marker])
     player_marker_f = lambda hside, vside: Rect(o.win,
@@ -175,7 +175,7 @@ def do_trial(payoff_condition, opponent_choices, trial, payoffs):
     opponent_side = UP if choices_by_side[UP] is opponent_choice else DOWN
     oc_boxes = opponent_choice_boxes(opponent_choices, trial)
     pm, pm_player_marker = pmatrix(opponent_side, payoffs)
-    o.draw(oc_boxes, pm, score_counters(player_score, opponent_score))
+    o.draw(score_counters(player_score, opponent_score), oc_boxes, pm)
     pressed = wait_for_keypress(dkey, ['left', 'right'])
 
     chosen_side = LEFT if pressed == 'left' else RIGHT
@@ -184,8 +184,8 @@ def do_trial(payoff_condition, opponent_choices, trial, payoffs):
     player_score += payoffs[player_choice, opponent_choice]
     opponent_score += payoffs[opponent_choice, player_choice]
     o.wait_screen(.5,
-        oc_boxes, pm,
         score_counters(player_score, opponent_score),
+        oc_boxes, pm,
         pm_player_marker(chosen_side, opponent_side))
 
 # ------------------------------------------------------------
